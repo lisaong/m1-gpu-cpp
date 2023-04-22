@@ -15,14 +15,20 @@ public:
     MetalOperations(MTL::Device *device);
     ~MetalOperations() = default;
 
-    void reduce1D(MTL::Buffer *x_array,
-                  MTL::Buffer *result_array,
-                  size_t arrayLength);
+    void reduceSum1D(MTL::Buffer *X,
+                     MTL::Buffer *result,
+                     unsigned long xLength);
 
 private:
-    void _blocking1D(std::vector<MTL::Buffer *> buffers,
-                    size_t arrayLength,
-                    const char *method);
+    MTL::Buffer *_reduceSum1D_threadgroup(MTL::Buffer *X,
+                                          unsigned long xLength,
+                                          unsigned long *numThreadGroups);
+
+    void _reduceSum1D_final(MTL::Buffer *threadGroupSums,
+                            unsigned long numThreadGroups,
+                            MTL::Buffer *result);
+
+    const MTL::ComputePipelineState *_getPipeline(const char *method);
 
     // The kernel function pipelines.
     std::map<std::string, AutoPtr<MTL::ComputePipelineState>> _mfunctionPipelineMap;

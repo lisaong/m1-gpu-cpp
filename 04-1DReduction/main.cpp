@@ -3,8 +3,9 @@
 #define NS_PRIVATE_IMPLEMENTATION
 #define CA_PRIVATE_IMPLEMENTATION
 #define MTL_PRIVATE_IMPLEMENTATION
-#include "Foundation/Foundation.hpp"
-#include "Metal/Metal.hpp"
+#include <Foundation/Foundation.hpp>
+#include <Metal/Metal.hpp>
+#include <QuartzCore/QuartzCore.hpp>
 
 #include "CPUOperations.hpp"
 #include "MetalOperations.hpp"
@@ -18,11 +19,10 @@ constexpr auto unit_name = "microseconds";
 constexpr size_t repeats = 100;
 // Length of array to test kernels on
 
-constexpr unsigned long arrayLength = 60 * 180 * 10000;
+constexpr unsigned long arrayLength = 2 << 20;
 // end ---------------------------------------------------------------------------------
 
 constexpr unsigned long bufferSize = arrayLength * sizeof(float);
-
 
 int main(int argc, char *argv[])
 {
@@ -45,15 +45,15 @@ int main(int argc, char *argv[])
     generateRandomFloatData(buf_CPP, arrayLength);
 
     MetalOperations reductionOps(device.get());
-    reductionOps.reduce1D(buf_MTL.get(), result_MTL.get(), arrayLength);
+    reductionOps.reduceSum1D(buf_MTL.get(), result_MTL.get(), arrayLength);
     reduce1D(buf_CPP, &result_VER, arrayLength);
     if (result_VER == result_CPP[0])
     {
-        std::cout << u8"\u2705" << "Metal and C++ results match" << std::endl;
+        std::cout << u8"\u2705" << "reduce1D_0: Metal and C++ results match" << std::endl;
     }
     else
     {
-        std::cerr << u8"\u274C" << "Metal and C++ results do not match" << std::endl;
+        std::cerr << u8"\u274C" << "reduce1D_0: Metal and C++ results do not match" << std::endl;
         return -1;
     }
 
