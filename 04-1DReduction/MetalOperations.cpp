@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 #include "MetalOperations.hpp"
 
 #define LIBRARY_PATH "./reduce.metallib"
@@ -33,8 +34,11 @@ MetalOperations::MetalOperations(MTL::Device *device) : _mDevice(device),
         std::cout << name_utf8 << std::endl;
 
         // insert/find avoids calling the default constructor for AutoPtr
-        _mfunctionPipelineMap.insert({name_utf8, AutoPtr<MTL::ComputePipelineState>(
-                                                     _mDevice->newComputePipelineState(opLibrary->newFunction(name_nsstring), &error))});
+        _mfunctionPipelineMap.insert({name_utf8,
+                                      AutoPtr<MTL::ComputePipelineState>(
+                                          _mDevice->newComputePipelineState(
+                                              opLibrary->newFunction(name_nsstring),
+                                              &error))});
 
         if (auto found = _mfunctionPipelineMap.find(name_utf8); found == _mfunctionPipelineMap.end())
         {
@@ -75,25 +79,19 @@ MTL::Buffer *MetalOperations::_reduceSum1D_threadgroup(MTL::Buffer *X,
     }
     computeEncoder->setComputePipelineState(methodPSO);
 
+    *numThreadGroups = 32;
     auto gridSize = MTL::Size::Make(xLength, 1, 1);
+    auto threadgroupSize = MTL::Size::Make(*numThreadGroups, 1, 1);
 
-    // Calculate a threadgroup size.
-    auto threadGroupSize = methodPSO->maxTotalThreadsPerThreadgroup();
-    if (threadGroupSize > xLength)
-    {
-        threadGroupSize = xLength;
-    }
-    auto threadgroupSize = MTL::Size::Make(threadGroupSize, 1, 1);
-
-    AutoPtr<MTL::Buffer> results(_mDevice->newBuffer(threadGroupSize * sizeof(float),
-                                                     MTL::ResourceStorageModeManaged));
+    MTL::Buffer *results = _mDevice->newBuffer((*numThreadGroups) * sizeof(float),
+                                               MTL::ResourceStorageModeManaged);
 
     // Set the buffer to be used as the compute shader's input.
     computeEncoder->setBuffer(X, 0, 0);
-    computeEncoder->setBuffer(results.get(), 0, 1);
+    computeEncoder->setBuffer(results, 0, 1);
 
     // Set the threadgroup shared buffer size.
-    computeEncoder->setThreadgroupMemoryLength(sizeof(float) * threadGroupSize, 0);
+    computeEncoder->setThreadgroupMemoryLength((*numThreadGroups) * sizeof(float), 0);
 
     // Encode the compute command.
     computeEncoder->dispatchThreadgroups(gridSize, threadgroupSize);
@@ -104,8 +102,10 @@ MTL::Buffer *MetalOperations::_reduceSum1D_threadgroup(MTL::Buffer *X,
     // Commit the command buffer.
     commandBuffer->commit();
 
-    *numThreadGroups = threadGroupSize;
-    return results.get();
+    // Wait for the command buffer to finish.
+    commandBuffer->waitUntilCompleted();
+
+    return results;
 }
 
 void MetalOperations::_reduceSum1D_final(MTL::Buffer *threadGroupSums,
@@ -124,25 +124,18 @@ void MetalOperations::_reduceSum1D_final(MTL::Buffer *threadGroupSums,
     computeEncoder->setComputePipelineState(methodPSO);
 
     auto gridSize = MTL::Size::Make(numThreadGroups, 1, 1);
-
-    // Calculate a threadgroup size.
-    auto threadGroupSize = methodPSO->maxTotalThreadsPerThreadgroup();
-    if (threadGroupSize > numThreadGroups)
-    {
-        threadGroupSize = numThreadGroups;
-    }
-    auto threadgroupSize = MTL::Size::Make(threadGroupSize, 1, 1);
+    auto threadgroupSize = MTL::Size::Make(numThreadGroups, 1, 1);
 
     // Set the buffer to be used as the compute shader's input.
     computeEncoder->setBuffer(threadGroupSums, 0, 0);
     computeEncoder->setBuffer(result, 0, 1);
 
     // Set the threadgroup shared buffer size.
-    computeEncoder->setThreadgroupMemoryLength(sizeof(float) * threadGroupSize, 0);
-
+    computeEncoder->setThreadgroupMemoryLength(sizeof(float) * numThreadGroups, 0);
     computeEncoder->dispatchThreadgroups(gridSize, threadgroupSize);
     computeEncoder->endEncoding();
     commandBuffer->commit();
+    commandBuffer->waitUntilCompleted();
 }
 
 void MetalOperations::reduceSum1D(MTL::Buffer *X,

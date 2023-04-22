@@ -23,13 +23,13 @@ kernel void reduceSum1D_threadgroup(device const float* X [[buffer(0)]],
     } else {
         shared_data[local_id] = 0.0;
     }
+    threadgroup_barrier(mem_flags::mem_threadgroup);
 
     for (uint stride = num_threads / 2; stride > 0; stride >>= 1) {
         if (local_id < stride) {
             reduceSum_local(shared_data, local_id, stride);
         }
     }
-    threadgroup_barrier(mem_flags::mem_threadgroup);
 
     if (local_id == 0) {
         result[group_id] = shared_data[0];
@@ -47,13 +47,13 @@ kernel void reduceSum1D_final(device const float* X [[buffer(0)]],
     } else {
         shared_data[local_id] = 0.0;
     }
+    threadgroup_barrier(mem_flags::mem_threadgroup);
 
     for (uint stride = num_elements / 2; stride > 0; stride >>= 1) {
         if (local_id < stride) {
             reduceSum_local(shared_data, local_id, stride);
         }
     }
-    threadgroup_barrier(mem_flags::mem_threadgroup);
 
     if (local_id == 0) {
         result[0] = shared_data[0];

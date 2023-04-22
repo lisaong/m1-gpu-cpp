@@ -19,7 +19,7 @@ constexpr auto unit_name = "microseconds";
 constexpr size_t repeats = 100;
 // Length of array to test kernels on
 
-constexpr unsigned long arrayLength = 2 << 20;
+constexpr unsigned long arrayLength = 1 << 10;
 // end ---------------------------------------------------------------------------------
 
 constexpr unsigned long bufferSize = arrayLength * sizeof(float);
