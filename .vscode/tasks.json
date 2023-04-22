@@ -361,6 +361,8 @@
                 "-framework",
                 "MetalKit",
                 "-g",
+                "${workspaceFolder}/04-1DReduction/CPUOperations.cpp",
+                "${workspaceFolder}/04-1DReduction/MetalOperations.cpp",
                 "${workspaceFolder}/04-1DReduction/main.cpp",
                 "-o",
                 "${workspaceFolder}/04-1DReduction/benchmark.x"
@@ -376,9 +378,39 @@
                 "isDefault": true
             },
             "detail": "compiler: /opt/homebrew/opt/llvm/bin/clang++",
-            // "dependsOn": [
-            //     "Build .metallib 03"
-            // ],
+            "dependsOn": [
+                "Build .metallib 04"
+            ],
+        },
+        {
+            "type": "shell",
+            "label": "Build .air 04",
+            "command": "xcrun",
+            "args": [
+                "-sdk",
+                "macosx",
+                "metal",
+                "-c",
+                "${workspaceFolder}/04-1DReduction/reduce.metal",
+                "-o",
+                "${workspaceFolder}/04-1DReduction/reduce.air"
+            ]
+        },
+        {
+            "type": "shell",
+            "label": "Build .metallib 04",
+            "command": "xcrun",
+            "args": [
+                "-sdk",
+                "macosx",
+                "metallib",
+                "${workspaceFolder}/04-1DReduction/reduce.air",
+                "-o",
+                "${workspaceFolder}/04-1DReduction/reduce.metallib"
+            ],
+            "dependsOn": [
+                "Build .air 04"
+            ]
         },
     ]
 }
