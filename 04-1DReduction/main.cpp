@@ -1,5 +1,4 @@
 #include <iostream>
-#include <assert.h>
 
 #define NS_PRIVATE_IMPLEMENTATION
 #define CA_PRIVATE_IMPLEMENTATION
@@ -40,12 +39,23 @@ int main(int argc, char *argv[])
 
     // Get a C++-style reference to the buffer
     auto buf_CPP = reinterpret_cast<float *>(buf_MTL->contents());
-    float ver = 0.0f;
+    auto result_CPP = reinterpret_cast<float *>(result_MTL->contents());
+    float result_VER = 0.0f;
 
     generateRandomFloatData(buf_CPP, arrayLength);
 
-    // Create a GPU object
     MetalOperations reductionOps(device.get());
-
     reductionOps.reduce1D(buf_MTL.get(), result_MTL.get(), arrayLength);
+    reduce1D(buf_CPP, &result_VER, arrayLength);
+    if (result_VER == result_CPP[0])
+    {
+        std::cout << u8"\u2705" << "Metal and C++ results match" << std::endl;
+    }
+    else
+    {
+        std::cerr << u8"\u274C" << "Metal and C++ results do not match" << std::endl;
+        return -1;
+    }
+
+    return 0;
 }
