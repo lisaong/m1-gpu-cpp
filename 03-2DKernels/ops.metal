@@ -140,7 +140,6 @@ kernel void inspector(
                   uint thread_position_in_threadgroup          [[thread_position_in_threadgroup]], 
                   uint threadgroup_position_in_grid            [[threadgroup_position_in_grid]],
                   uint threadgroups_per_grid                   [[threadgroups_per_grid]], 
-                  uint threads_per_simdgroup                   [[threads_per_simdgroup]], 
                   uint threads_per_threadgroup                 [[threads_per_threadgroup]])
 {
     result[thread_position_in_grid] = X[thread_position_in_grid] + 1.0;
@@ -164,8 +163,7 @@ kernel void inspector(
         store[15] = thread_position_in_threadgroup;
         store[16] = threadgroup_position_in_grid;
         store[17] = threadgroups_per_grid;
-        store[18] = threads_per_simdgroup;
-        store[19] = threads_per_threadgroup;
+        store[18] = threads_per_threadgroup;
     }
 
 }

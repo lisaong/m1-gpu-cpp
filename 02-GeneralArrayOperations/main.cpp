@@ -63,6 +63,13 @@ int main(int argc, char *argv[])
     // Create GPU object
     MetalOperations *arrayOps = new MetalOperations(device);
 
+    // Inspect GPU
+    MTL::Buffer *store_MTL = device->newBuffer(18, MTL::ResourceStorageModeManaged);
+    auto store_CPP = (int *)store_MTL->contents();
+    arrayOps->inspector(store_MTL);
+    std::cout << "threads_per_grid: " << store_CPP[0] << std::endl;
+    std::cout << "thread_execution_width: " << store_CPP[10] << std::endl;
+
     // Verify all array operations -----------------------------------------------------
     arrayOps->addArrays(a_MTL, b_MTL, c_MTL, arrayLength);
     add(a_CPP, b_CPP, c_VER, arrayLength);

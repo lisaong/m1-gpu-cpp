@@ -51,10 +51,7 @@ public:
                             MTL::Buffer *r_array,
                             size_t arrayLength);
 
-    void inspector(MTL::Buffer *x_array,
-                   MTL::Buffer *r_array,
-                   MTL::Buffer *store,
-                   size_t arrayLength);
+    void inspector(MTL::Buffer *store);
 
 private:
     std::map<std::string, MTL::Function *> functionMap;
