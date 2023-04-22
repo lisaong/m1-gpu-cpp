@@ -1,5 +1,6 @@
 {
-    "configurations": [{
+    "configurations": [
+        {
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
@@ -7,7 +8,6 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "cwd": "${workspaceFolder}/paper",
-
         },
         {
             "name": "MetalAdder benchmark debugging",
@@ -21,7 +21,8 @@
             "externalConsole": false,
             "MIMode": "lldb",
             "preLaunchTask": "Build 01"
-        }, {
+        },
+        {
             "name": "MetalOperations debugging",
             "type": "cppdbg",
             "request": "launch",
@@ -33,6 +34,19 @@
             "externalConsole": false,
             "MIMode": "lldb",
             "preLaunchTask": "Build 02"
+        },
+        {
+            "name": "Metal1DReduction debugging",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/04-1DReduction/benchmark.x",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/04-1DReduction",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb",
+            "preLaunchTask": "Build 04"
         }
     ]
 }
