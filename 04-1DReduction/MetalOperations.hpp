@@ -19,7 +19,8 @@ public:
                      MTL::Buffer *result,
                      unsigned long xLength,
                      const char *method,
-                     unsigned long numThreadsPerGroup);
+                     unsigned long numThreadsPerGroup,
+                     unsigned long numThreadgroups);
 
 private:
     const MTL::ComputePipelineState *_getPipeline(const char *method);

@@ -21,11 +21,11 @@ constexpr size_t repeats = 100;
 constexpr unsigned long arrayLength = 1 << 20;
 
 constexpr unsigned long numThreadsPerGroup = 32;
-constexpr unsigned long numThreadgroups = arrayLength / numThreadsPerGroup + 1;
+constexpr unsigned long numThreadgroups = arrayLength / numThreadsPerGroup;
 // end ---------------------------------------------------------------------------------
 
 constexpr unsigned long bufferSize = arrayLength * sizeof(float);
-constexpr unsigned long resultBufferSize = numThreadsPerGroup * sizeof(float);
+constexpr unsigned long resultBufferSize = numThreadgroups * sizeof(float);
 
 int main(int argc, char *argv[])
 {
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
     generateRandomFloatData(buf_CPP, arrayLength);
 
     MetalOperations reductionOps(device.get());
-    reductionOps.reduceSum1D(buf_MTL.get(), result_MTL.get(), arrayLength, "reduceSum1D_2", numThreadsPerGroup);
+    reductionOps.reduceSum1D(buf_MTL.get(), result_MTL.get(), arrayLength, "reduceSum1D_2", numThreadsPerGroup, numThreadgroups);
 
     reduce1D(buf_CPP, &result_VER, arrayLength);
     for (uint i = 0; i < numThreadgroups; ++i)
