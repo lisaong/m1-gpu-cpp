@@ -19,7 +19,7 @@ constexpr auto unit_name = "microseconds";
 constexpr size_t repeats = 100;
 // Length of array to test kernels on
 
-constexpr unsigned long arrayLength = 1 << 10;
+constexpr unsigned long arrayLength = 1 << 5; // 1 << 10;
 // end ---------------------------------------------------------------------------------
 
 constexpr unsigned long bufferSize = arrayLength * sizeof(float);
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     generateRandomFloatData(buf_CPP, arrayLength);
 
     MetalOperations reductionOps(device.get());
-    reductionOps.reduceSum1D(buf_MTL.get(), result_MTL.get(), arrayLength);
+    reductionOps.reduceSum1D(buf_MTL.get(), result_MTL.get(), arrayLength, "reduceSum1D_0");
     reduce1D(buf_CPP, &result_VER, arrayLength);
     if (result_VER == result_CPP[0])
     {

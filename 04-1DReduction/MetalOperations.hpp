@@ -17,17 +17,10 @@ public:
 
     void reduceSum1D(MTL::Buffer *X,
                      MTL::Buffer *result,
-                     unsigned long xLength);
+                     unsigned long xLength,
+                     const char* method);
 
 private:
-    MTL::Buffer *_reduceSum1D_threadgroup(MTL::Buffer *X,
-                                          unsigned long xLength,
-                                          unsigned long *numThreadGroups);
-
-    void _reduceSum1D_final(MTL::Buffer *threadGroupSums,
-                            unsigned long numThreadGroups,
-                            MTL::Buffer *result);
-
     const MTL::ComputePipelineState *_getPipeline(const char *method);
 
     // The kernel function pipelines.

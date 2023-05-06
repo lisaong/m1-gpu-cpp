@@ -64,89 +64,36 @@ const MTL::ComputePipelineState *MetalOperations::_getPipeline(const char *metho
     return found->second.get();
 }
 
-MTL::Buffer *MetalOperations::_reduceSum1D_threadgroup(MTL::Buffer *X,
-                                                       unsigned long xLength,
-                                                       unsigned long *numThreadGroups)
+void MetalOperations::reduceSum1D(MTL::Buffer *X,
+                                  MTL::Buffer *result,
+                                  unsigned long xLength,
+                                  const char *method)
 {
     MTL::CommandBuffer *commandBuffer = _mCommandQueue->commandBuffer();
     MTL::ComputeCommandEncoder *computeEncoder = commandBuffer->computeCommandEncoder();
 
     // Set the compute pipeline state.
-    auto methodPSO = _getPipeline("reduceSum1D_threadgroup");
+    auto methodPSO = _getPipeline(method);
     if (methodPSO == nullptr)
     {
-        return nullptr;
+        return;
     }
     computeEncoder->setComputePipelineState(methodPSO);
 
-    *numThreadGroups = 32;
-    auto gridSize = MTL::Size::Make(xLength, 1, 1);
-    auto threadgroupSize = MTL::Size::Make(*numThreadGroups, 1, 1);
+    auto numThreads = 32;
+    auto sharedMemSize = numThreads * sizeof(float);
 
-    MTL::Buffer *results = _mDevice->newBuffer((*numThreadGroups) * sizeof(float),
-                                               MTL::ResourceStorageModeManaged);
+    auto gridSize = MTL::Size::Make(xLength, 1, 1);
+    auto threadgroupSize = MTL::Size::Make(numThreads, 1, 1);
 
     // Set the buffer to be used as the compute shader's input.
     computeEncoder->setBuffer(X, 0, 0);
-    computeEncoder->setBuffer(results, 0, 1);
-
-    // Set the threadgroup shared buffer size.
-    computeEncoder->setThreadgroupMemoryLength((*numThreadGroups) * sizeof(float), 0);
-
-    // Encode the compute command.
-    computeEncoder->dispatchThreadgroups(gridSize, threadgroupSize);
-
-    // End the compute command encoder.
-    computeEncoder->endEncoding();
-
-    // Commit the command buffer.
-    commandBuffer->commit();
-
-    // Wait for the command buffer to finish.
-    commandBuffer->waitUntilCompleted();
-
-    return results;
-}
-
-void MetalOperations::_reduceSum1D_final(MTL::Buffer *threadGroupSums,
-                                         unsigned long numThreadGroups,
-                                         MTL::Buffer *result)
-{
-    MTL::CommandBuffer *commandBuffer = _mCommandQueue->commandBuffer();
-    MTL::ComputeCommandEncoder *computeEncoder = commandBuffer->computeCommandEncoder();
-
-    // Set the compute pipeline state.
-    auto methodPSO = _getPipeline("reduceSum1D_final");
-    if (methodPSO == nullptr)
-    {
-        return;
-    }
-    computeEncoder->setComputePipelineState(methodPSO);
-
-    auto gridSize = MTL::Size::Make(numThreadGroups, 1, 1);
-    auto threadgroupSize = MTL::Size::Make(numThreadGroups, 1, 1);
-
-    // Set the buffer to be used as the compute shader's input.
-    computeEncoder->setBuffer(threadGroupSums, 0, 0);
     computeEncoder->setBuffer(result, 0, 1);
 
     // Set the threadgroup shared buffer size.
-    computeEncoder->setThreadgroupMemoryLength(sizeof(float) * numThreadGroups, 0);
+    computeEncoder->setThreadgroupMemoryLength(sharedMemSize, 0);
     computeEncoder->dispatchThreadgroups(gridSize, threadgroupSize);
     computeEncoder->endEncoding();
     commandBuffer->commit();
     commandBuffer->waitUntilCompleted();
-}
-
-void MetalOperations::reduceSum1D(MTL::Buffer *X,
-                                  MTL::Buffer *result,
-                                  unsigned long xLength)
-{
-    unsigned long numThreadGroups;
-    AutoPtr<MTL::Buffer> threadgroupResults(_reduceSum1D_threadgroup(X, xLength, &numThreadGroups));
-    if (threadgroupResults.get() == nullptr)
-    {
-        return;
-    }
-    _reduceSum1D_final(threadgroupResults.get(), numThreadGroups, result);
 }
