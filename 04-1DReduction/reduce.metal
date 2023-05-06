@@ -5,7 +5,7 @@ using namespace metal;
 
 
 kernel void reduceSum1D_2(device const float* X [[buffer(0)]],
-                          device const int* X_len [[buffer(1)]],
+                          device const unsigned long *xLength [[buffer(1)]],
                           device float* result [[buffer(2)]],
                           threadgroup float* shared_data [[threadgroup(0)]],
                           uint global_id [[thread_position_in_grid]],
@@ -15,7 +15,7 @@ kernel void reduceSum1D_2(device const float* X [[buffer(0)]],
 {
     uint tid = local_id;
     uint i = global_id;
-    uint n = X_len[0]; // Note: grid_size is 0 when dispatchThreadgroups() is used 
+    uint n = xLength[0]; // Note: the [[grid_size]] attribute is not set for dispatchThreadgroups()
 
     shared_data[tid] = (i < n) ? X[i] : 0.0;
     threadgroup_barrier(mem_flags::mem_threadgroup);
