@@ -113,4 +113,16 @@ int main(int argc, char *argv[])
 
     std::cout << "Compound operations: \t\t"
               << array_mean << unit_name << " \t +/- " << array_std << unit_name << std::endl;
+
+    // Cleanup --------------------------------------------------------------------------
+    delete [] durations;
+    delete arrayOps;
+    delete[] c_VER;
+
+    a_MTL->release();
+    b_MTL->release();
+    c_MTL->release();
+    k_MTL->release();
+
+    device->release();
 }
