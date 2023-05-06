@@ -24,8 +24,8 @@ constexpr unsigned long numThreadsPerGroup = 32;
 constexpr unsigned long numThreadgroups = arrayLength / numThreadsPerGroup;
 // end ---------------------------------------------------------------------------------
 
-constexpr unsigned long bufferSize = arrayLength * sizeof(float);
-constexpr unsigned long resultBufferSize = numThreadgroups * sizeof(float);
+constexpr unsigned long bufferSize = arrayLength * sizeof(int);
+constexpr unsigned long resultBufferSize = numThreadgroups * sizeof(long);
 
 int main(int argc, char *argv[])
 {
@@ -41,17 +41,17 @@ int main(int argc, char *argv[])
     AutoPtr<MTL::Buffer> result_MTL(device->newBuffer(resultBufferSize, MTL::ResourceStorageModeManaged));
 
     // Get a C++-style reference to the buffer
-    auto buf_CPP = reinterpret_cast<float *>(buf_MTL->contents());
-    auto result_CPP = reinterpret_cast<float *>(result_MTL->contents());
-    float result_GPU = 0.0f;
-    float result_VER = 0.0f;
+    auto buf_CPP = reinterpret_cast<int *>(buf_MTL->contents());
+    auto result_CPP = reinterpret_cast<long *>(result_MTL->contents());
+    long result_GPU = 0.0f;
+    long result_VER = 0.0f;
 
-    generateRandomFloatData(buf_CPP, arrayLength);
+    generateRandomData(buf_CPP, arrayLength);
 
     MetalOperations reductionOps(device.get());
     reductionOps.reduceSum1D(buf_MTL.get(), result_MTL.get(), arrayLength, "reduceSum1D_2", numThreadsPerGroup, numThreadgroups);
 
-    reduce1D(buf_CPP, &result_VER, arrayLength);
+    reduceSum1D(buf_CPP, &result_VER, arrayLength);
     for (uint i = 0; i < numThreadgroups; ++i)
     {
         result_GPU += result_CPP[i];
@@ -59,7 +59,8 @@ int main(int argc, char *argv[])
 
     if (result_VER == result_GPU)
     {
-        std::cout << u8"\u2705" << "reduce1D: Metal and C++ results match" << std::endl;
+        std::cout << u8"\u2705" << "reduce1D: Metal and C++ results match: "
+                  << result_GPU << std::endl;
     }
     else
     {

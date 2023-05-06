@@ -1,15 +1,15 @@
 #include "CPUOperations.hpp"
 #include <math.h>
 
-void generateRandomFloatData(float *dataPtr, unsigned long arrayLength)
+void generateRandomData(int *dataPtr, unsigned long arrayLength)
 {
     for (unsigned long index = 0; index < arrayLength; ++index)
     {
-        dataPtr[index] = (float)rand() / (float)(RAND_MAX);
+        dataPtr[index] = rand() % 256 - 128;
     }
 }
 
-void reduce1D(const float *x, float *result, unsigned long arrayLength)
+void reduceSum1D(const int *x, long *result, unsigned long arrayLength)
 {
     *result = x[0];
     for (unsigned long index = 1; index < arrayLength; ++index)

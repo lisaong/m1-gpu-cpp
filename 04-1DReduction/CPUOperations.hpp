@@ -1,4 +1,4 @@
 #pragma once
 
-void generateRandomFloatData(float *dataPtr, unsigned long arrayLength);
-void reduce1D(const float *x, float *result, unsigned long arrayLength);
+void generateRandomData(int *dataPtr, unsigned long arrayLength);
+void reduceSum1D(const int *x, long *result, unsigned long arrayLength);
