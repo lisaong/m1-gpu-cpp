@@ -18,11 +18,14 @@ constexpr auto unit_name = "microseconds";
 // Amount of repeats for benchmarking
 constexpr size_t repeats = 100;
 // Length of array to test kernels on
+constexpr unsigned long arrayLength = 1 << 10;
 
-constexpr unsigned long arrayLength = 1 << 5; // 1 << 10;
+constexpr unsigned long numThreadsPerGroup = 32;
+constexpr unsigned long numThreadgroups = arrayLength / numThreadsPerGroup + 1;
 // end ---------------------------------------------------------------------------------
 
 constexpr unsigned long bufferSize = arrayLength * sizeof(float);
+constexpr unsigned long resultBufferSize = numThreadgroups * sizeof(float);
 
 int main(int argc, char *argv[])
 {
@@ -35,19 +38,27 @@ int main(int argc, char *argv[])
 
     // TODO: profile managed vs. shared vs. device
     AutoPtr<MTL::Buffer> buf_MTL(device->newBuffer(bufferSize, MTL::ResourceStorageModeManaged));
-    AutoPtr<MTL::Buffer> result_MTL(device->newBuffer(1, MTL::ResourceStorageModeManaged));
+    AutoPtr<MTL::Buffer> result_MTL(device->newBuffer(resultBufferSize, MTL::ResourceStorageModeManaged));
 
     // Get a C++-style reference to the buffer
     auto buf_CPP = reinterpret_cast<float *>(buf_MTL->contents());
     auto result_CPP = reinterpret_cast<float *>(result_MTL->contents());
+    float result_GPU = 0.0f;
     float result_VER = 0.0f;
 
     generateRandomFloatData(buf_CPP, arrayLength);
 
     MetalOperations reductionOps(device.get());
-    reductionOps.reduceSum1D(buf_MTL.get(), result_MTL.get(), arrayLength, "reduceSum1D_0");
+    reductionOps.reduceSum1D(buf_MTL.get(), result_MTL.get(), arrayLength, "reduceSum1D_0", numThreadsPerGroup);
+
     reduce1D(buf_CPP, &result_VER, arrayLength);
-    if (result_VER == result_CPP[0])
+    for (uint i = 0; i < numThreadgroups; ++i)
+    {
+        std::cout << result_CPP[i] << std::endl;
+        result_GPU += result_CPP[i];
+    }
+
+    if (result_VER == result_GPU)
     {
         std::cout << u8"\u2705" << "reduce1D_0: Metal and C++ results match" << std::endl;
     }

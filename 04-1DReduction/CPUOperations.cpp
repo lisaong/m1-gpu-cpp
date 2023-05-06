@@ -11,8 +11,8 @@ void generateRandomFloatData(float *dataPtr, unsigned long arrayLength)
 
 void reduce1D(const float *x, float *result, unsigned long arrayLength)
 {
-    *result = 0;
-    for (unsigned long index = 0; index < arrayLength; ++index)
+    *result = x[0];
+    for (unsigned long index = 1; index < arrayLength; ++index)
     {
         *result += x[index];
     }

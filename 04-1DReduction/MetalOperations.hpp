@@ -18,7 +18,8 @@ public:
     void reduceSum1D(MTL::Buffer *X,
                      MTL::Buffer *result,
                      unsigned long xLength,
-                     const char* method);
+                     const char *method,
+                     unsigned long numThreadsPerGroup);
 
 private:
     const MTL::ComputePipelineState *_getPipeline(const char *method);
