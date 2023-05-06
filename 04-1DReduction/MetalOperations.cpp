@@ -83,7 +83,7 @@ void MetalOperations::reduceSum1D(MTL::Buffer *X,
 
     const auto gridSize = MTL::Size::Make(xLength, 1, 1);
     const auto threadgroupSize = MTL::Size::Make(numThreadsPerGroup, 1, 1);
-    const auto sharedMemSize = xLength * sizeof(float);
+    const auto sharedMemSize = numThreadsPerGroup * sizeof(float);
 
     // Set the buffer to be used as the compute shader's input.
     computeEncoder->setBuffer(X, 0, 0);
